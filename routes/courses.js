@@ -4,13 +4,21 @@ const router = express.Router();
 // instruction: import the course model
 const Course = require("../models/course");
 
+const {
+  getCourses,
+  getCourse,
+  addCourse,
+  updateCourse,
+  deleteCourse,
+} = require("../controllers/courses");
+
 /* 
     instruction: 
     - setup GET /: List all courses (utilize populate() to bring in instructor details)
 */
 router.get("/", async (req, res) => {
   try {
-    res.status(200).send(await Course.find().populate("instructor"));
+    res.status(200).send(await getCourses());
   } catch (error) {
     console.log(error);
     res.status(400).send({ error: "Unknown error" });
@@ -21,7 +29,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    res.status(200).send(await Course.findById(id).populate("instructor"));
+    res.status(200).send(await getCourse(id));
   } catch (error) {
     console.log(error);
     res.status(400).send({ error: "Unknown error" });
@@ -46,17 +54,19 @@ router.post("/", async (req, res) => {
       });
     }
 
-    res.status(200).send(
-      await new Course({
-        title,
-        instructor,
-        startDate,
-        endDate,
-        subject,
-        description,
-        enrollmentCount,
-      }).save() // clicking the save button
-    );
+    res
+      .status(200)
+      .send(
+        await addCourse(
+          title,
+          instructor,
+          startDate,
+          endDate,
+          subject,
+          description,
+          enrollmentCount
+        )
+      );
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: "Unknown error" });
@@ -82,26 +92,23 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    res.status(200).send(
-      await Course.findByIdAndUpdate(
-        id,
-        {
+    res
+      .status(200)
+      .send(
+        await updateCourse(
+          id,
           title,
           instructor,
           startDate,
           endDate,
           subject,
           description,
-          enrollmentCount,
-        },
-        {
-          new: true,
-        }
-      )
-    );
+          enrollmentCount
+        )
+      );
   } catch (error) {
     console.log(error);
-    res.status(400).send({ message: "Unknown error" });
+    res.status(400).send({ message: error });
   }
 });
 
@@ -109,7 +116,7 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    await Course.findByIdAndDelete(id);
+    await deleteCourse(id);
 
     res.status(200).send({
       message: `Course with the ID of ${id} has been deleted`,

@@ -4,10 +4,18 @@ const router = express.Router();
 // instruction: import the book model
 const Instructor = require("../models/instructor");
 
+const {
+  getInstructors,
+  getInstructor,
+  addInstructor,
+  updateInstructor,
+  deleteInstructor,
+} = require("../controllers/instructors");
+
 // instruction: GET /: List all instructors
 router.get("/", async (req, res) => {
   try {
-    res.status(200).send(await Instructor.find());
+    res.status(200).send(await getInstructors());
   } catch (error) {
     console.log(error);
     res.status(400).send({ error: "Unknown error" });
@@ -18,7 +26,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    res.status(200).send(await Instructor.findById(id));
+    res.status(200).send(await getInstructor(id));
   } catch (error) {
     console.log(error);
     res.status(400).send({ error: "Unknown error" });
@@ -40,14 +48,9 @@ router.post("/", async (req, res) => {
       });
     }
 
-    res.status(200).send(
-      await new Instructor({
-        name,
-        qualification,
-        profile,
-        coursesTaught,
-      }).save() // clicking the save button
-    );
+    res
+      .status(200)
+      .send(await addInstructor(name, qualification, profile, coursesTaught));
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: "Unknown error" });
@@ -70,20 +73,11 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    res.status(200).send(
-      await Instructor.findByIdAndUpdate(
-        id,
-        {
-          name,
-          qualification,
-          profile,
-          coursesTaught,
-        },
-        {
-          new: true,
-        }
-      )
-    );
+    res
+      .status(200)
+      .send(
+        await updateInstructor(id, name, qualification, profile, coursesTaught)
+      );
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: "Unknown error" });
@@ -94,7 +88,7 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    await Instructor.findByIdAndDelete(id);
+    await deleteInstructor(id);
 
     res.status(200).send({
       message: `Instructor with the ID of ${id} has been deleted`,
